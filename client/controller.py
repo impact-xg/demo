@@ -74,10 +74,18 @@ def on_startup():
 
 def on_shutdown():
     """Terminate the ffmpeg process gracefully."""
-    global ffmpeg_process
-    if ffmpeg_process and ffmpeg_process.poll() is None:
-        ffmpeg_process.terminate()
-        ffmpeg_process.wait()
+    global current_quality
+    global ffmpeg_process_low
+    global ffmpeg_process_high
+    global LOW_QUALITY_FILE
+    global HIGH_QUALITY_FILE
+    global pipe_path
+    if current_quality == "high":
+        ffmpeg_process_high.terminate()
+    else:
+        ffmpeg_process_low.terminate()
+
+
 
 # Hook Flask app startup
 if __name__ == '__main__':
