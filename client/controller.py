@@ -84,7 +84,7 @@ def on_shutdown():
         if ffmpeg_process_high:
             ffmpeg_process_high.terminate()
     else:
-        if ffmpeg_process_low
+        if ffmpeg_process_low:
             ffmpeg_process_low.terminate()
 
 
