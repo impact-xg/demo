@@ -24,7 +24,7 @@ def high_quality():
     global LOW_QUALITY_FILE
     global HIGH_QUALITY_FILE
     global pipe_path
-    cmd = f"ffmpeg -re -stream_loop -1 -i {input_file} -f mpegts - | cat > {pipe_path}"
+
     ffmpeg_cmd = [
         "~/bin/ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
         "-f", "mpegts", "-", "|", "cat", ">", pipe_path
@@ -44,7 +44,7 @@ def low_quality():
     global LOW_QUALITY_FILE
     global HIGH_QUALITY_FILE
     global pipe_path
-    cmd = f"ffmpeg -re -stream_loop -1 -i {input_file} -f mpegts - | cat > {pipe_path}"
+
     ffmpeg_cmd = [
         "~/bin/ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
         "-f", "mpegts", "-", "|", "cat", ">", pipe_path
@@ -66,7 +66,6 @@ def on_startup():
     global pipe_path
 
     current_quality="high"
-    cmd = f"ffmpeg -re -stream_loop -1 -i {input_file} -f mpegts - | cat > {pipe_path}"
     ffmpeg_cmd = [
         "~/bin/ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
         "-f", "mpegts", "-", "|", "cat", ">", pipe_path
