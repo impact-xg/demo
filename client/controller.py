@@ -11,6 +11,7 @@ ffmpeg_process_low = None
 ffmpeg_process_high = None
 current_quality = "high"
 pipe_path = "input.pipe"
+ffmpeg_path = os.path.expanduser("~/bin/ffmpeg")
 
 # Video sources
 HIGH_QUALITY_FILE = "./input/webcam-10sec-0kmh-1.mp4"
@@ -24,9 +25,9 @@ def high_quality():
     global LOW_QUALITY_FILE
     global HIGH_QUALITY_FILE
     global pipe_path
-
+    global ffmpeg_path
     ffmpeg_cmd = [
-        "~/bin/ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
+       ffmpeg_path, "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
         "-f", "mpegts", "-", "|", "cat", ">", pipe_path
     ]
     if current_quality != "high":
@@ -44,9 +45,9 @@ def low_quality():
     global LOW_QUALITY_FILE
     global HIGH_QUALITY_FILE
     global pipe_path
-
+    global ffmpeg_path
     ffmpeg_cmd = [
-        "~/bin/ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
+        ffmpeg_path, "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
         "-f", "mpegts", "-", "|", "cat", ">", pipe_path
     ]
     if current_quality != "low":
@@ -67,7 +68,7 @@ def on_startup():
 
     current_quality="high"
     ffmpeg_cmd = [
-        "~/bin/ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
+        "ffmpeg", "-re", "-stream_loop", "1", "-i", "-i", HIGH_QUALITY_FILE,
         "-f", "mpegts", "-", "|", "cat", ">", pipe_path
     ]
     ffmpeg_process_high=subprocess.Popen(ffmpeg_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
