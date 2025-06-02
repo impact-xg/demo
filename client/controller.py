@@ -80,10 +80,12 @@ def on_shutdown():
     global LOW_QUALITY_FILE
     global HIGH_QUALITY_FILE
     global pipe_path
-    if current_quality == "high":
-        ffmpeg_process_high.terminate()
+    if current_quality == "high" and:
+        if ffmpeg_process_high:
+            ffmpeg_process_high.terminate()
     else:
-        ffmpeg_process_low.terminate()
+        if ffmpeg_process_low
+            ffmpeg_process_low.terminate()
 
 
 
