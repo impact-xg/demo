@@ -80,7 +80,7 @@ class PCAPHandler(FileSystemEventHandler):
             measurement["speed"] = speed
             asyncio.run(self.broadcast(json.dumps(measurement)))
         except Exception as e:
-            print(f"An error occurred: {e}")
+            return
 
 if __name__ == "__main__":
     event_handler = PCAPHandler()

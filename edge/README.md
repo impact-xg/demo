@@ -24,3 +24,9 @@ python3 -m http.server 9000
 
  Then visit 192.168.154.10:9000/operator.html
 
+From another terminal execute
+```
+relay.sh
+```
+
+From another terminal execute mediamtx

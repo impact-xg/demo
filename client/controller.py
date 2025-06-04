@@ -31,7 +31,7 @@ def high_quality():
     
     if current_quality != "high":
         current_quality = "high"
-        cmd = [ffmpeg_path, "-re", "-stream_loop", "-1", "-i", HIGH_QUALITY_FILE, "-f", "mpegts", "-"]
+        cmd = [ffmpeg_path, "-re", "-stream_loop", "-1", "-i", HIGH_QUALITY_FILE, "-input_format", "mjpeg", "-c", "copy", "-f", "mpegts", "-"]
         ffmpeg_process_high=subprocess.Popen(cmd, stdout=fifo_fd,
         stderr=subprocess.DEVNULL,
         preexec_fn=os.setsid)
@@ -53,7 +53,7 @@ def low_quality():
 
     if current_quality != "low":
         current_quality = "low"
-        cmd = [ffmpeg_path, "-re", "-stream_loop", "-1", "-i", LOW_QUALITY_FILE, "-f", "mpegts", "-"]
+        cmd = [ffmpeg_path, "-re", "-stream_loop", "-1", "-i", LOW_QUALITY_FILE, "-input_format", "mjpeg", "-c", "copy", "-f", "mpegts", "-"]
         ffmpeg_process_low=subprocess.Popen(cmd, stdout=fifo_fd,
         stderr=subprocess.DEVNULL,
         preexec_fn=os.setsid)
@@ -75,7 +75,7 @@ def on_startup():
     global fifo_fd
 
     current_quality="high"
-    cmd = [ffmpeg_path, "-re", "-stream_loop", "-1", "-i", HIGH_QUALITY_FILE, "-f", "mpegts", "-"]
+    cmd = [ffmpeg_path, "-re", "-stream_loop", "-1", "-i", HIGH_QUALITY_FILE, "-input_format", "mjpeg", "-c", "copy",  "-f", "mpegts", "-"]
     ffmpeg_process_high=subprocess.Popen(cmd, stdout=fifo_fd,
         stderr=subprocess.DEVNULL,
         preexec_fn=os.setsid)
