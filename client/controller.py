@@ -14,8 +14,8 @@ pipe_path = "input.pipe"
 ffmpeg_path = os.path.expanduser("~/bin/ffmpeg")
 
 # Video sources
-HIGH_QUALITY_FILE = "./input/webcam-10sec-0kmh-1.mp4"
-LOW_QUALITY_FILE = "./input/webcam-10sec-0kmh-700.mp4"
+HIGH_QUALITY_FILE = "./input/webcam-20kmh-long-1.mp4"
+LOW_QUALITY_FILE = "./input/webcam-20kmh-long-700.mp4"
 
 fifo_fd = open(pipe_path, 'wb')
 

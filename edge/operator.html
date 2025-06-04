@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Monitor</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    #log {
+      white-space: pre-wrap;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 500px;
+      overflow-y: auto;
+    }
+    video {
+      width: 720px;
+      height: 405px;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📡 Tshark Output Stream</h2>
+<div id="log">Waiting for messages...</div>
+ <h2>📡 Live WebRTC Stream from MediaMTX</h2>
+<iframe
+  src="http://192.168.154.10:8889/camera"
+  width="720"
+  height="405"
+  frameborder="0"
+  allow="autoplay"
+></iframe>
+
+<script>
+  const logDiv = document.getElementById("log");
+  const ws = new WebSocket("ws://192.168.154.10:8765");
+
+  ws.onopen = () => {
+    logDiv.textContent = "✅ Connected to WebSocket server.\n";
+  };
+
+  ws.onmessage = (event) => {
+    logDiv.textContent =  event.data;
+  };
+
+  ws.onerror = (err) => {
+    logDiv.textContent += "\n❌ WebSocket error: " + err.message;
+  };
+
+  ws.onclose = () => {
+    logDiv.textContent += "\n🔌 Disconnected from WebSocket server.";
+  };
+</script>
+
+</body>
+</html>
