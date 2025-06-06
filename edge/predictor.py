@@ -74,7 +74,7 @@ class SelfAttention(tf.keras.layers.Layer):
 
 
 class Predictor:
-    def __init__(self, model_path="model_gru_with_attention.h5", scaler_path="scaler.save", seq_length=5):
+    def __init__(self, model_path="model_gru_with_attention.h5", scaler_path="scaler.save", seq_length=5, use_stats=False):
         """
         Initialize the Predictor with the trained model and scaler.
         
@@ -82,10 +82,12 @@ class Predictor:
             model_path: Path to the saved model (.h5 file)
             scaler_path: Path to the saved scaler (.save file)
             seq_length: Sequence length used during training (default: 5)
+            use_stats: Whether statistical features were used during training (default: False)
         """
         print("Predictor initializing...")
         
         self.seq_length = seq_length
+        self.use_stats = use_stats
         self.model = None
         self.scaler = None
         self.feature_cols = None
@@ -105,6 +107,15 @@ class Predictor:
             
             # Determine feature columns based on the new format (5 timestamps × 5 features = 25 features)
             self.feature_cols = [f"f{i}" for i in range(25)]
+            
+            # Get the expected feature names from the scaler
+            if hasattr(self.scaler, 'feature_names_in_'):
+                self.scaler_features = list(self.scaler.feature_names_in_)
+                print(f"Scaler expects {len(self.scaler_features)} features: {self.scaler_features[:5]}...")
+            else:
+                # If scaler doesn't have feature names, we'll need to figure it out
+                self.scaler_features = None
+                print("Warning: Scaler doesn't have feature_names_in_ attribute")
             
             print("Predictor initialized successfully.")
             
@@ -135,6 +146,14 @@ class Predictor:
         
         # Flatten the features in the same order as during training
         flat_features = []
+        
+        # For statistics calculation if needed
+        if self.use_stats:
+            stats_features = {
+                "packet_loss_rate": [], "jitter": [], "throughput": [], 
+                "speed": [], "packets_lost": []
+            }
+        
         for key in inner_keys:
             entry = trace_dict[key]
             # Order: throughput, packets_lost, packet_loss_rate, jitter, speed
@@ -145,11 +164,35 @@ class Predictor:
                 entry["jitter"],
                 float(entry["speed"])  # Ensure speed is float
             ])
+            
+            if self.use_stats:
+                stats_features["throughput"].append(entry["throughput"])
+                stats_features["packets_lost"].append(entry["packets_lost"])
+                stats_features["packet_loss_rate"].append(entry["packet_loss_rate"])
+                stats_features["jitter"].append(entry["jitter"])
+                stats_features["speed"].append(float(entry["speed"]))
         
         # Create feature dictionary
         feature_dict = {}
         for i, val in enumerate(flat_features):
             feature_dict[f"f{i}"] = val
+        
+        # Add statistical features if needed
+        if self.use_stats:
+            for feature in stats_features.keys():
+                arr = np.array(stats_features[feature])
+                feature_dict[f"{feature}_mean"] = float(np.mean(arr))
+                feature_dict[f"{feature}_std"] = float(np.std(arr))
+                feature_dict[f"{feature}_min"] = float(np.min(arr))
+                feature_dict[f"{feature}_max"] = float(np.max(arr))
+        
+        # Add QoE as None (will be filled with 0 for scaling)
+        feature_dict["QoE"] = 0.0
+        
+        # Add timestamp if it's in the scaler features
+        if self.scaler_features and "timestamp" in self.scaler_features:
+            # Use the timestamp from the trace_dict
+            feature_dict["timestamp"] = trace_dict.get("timestamp", 0)
         
         return feature_dict
 
@@ -179,38 +222,63 @@ class Predictor:
                 # Create a DataFrame with the features
                 df = pd.DataFrame([features])
                 
-                # Normalize the features using the loaded scaler
-                # We only normalize the feature columns, not QoE
-                df_normalized = df.copy()
-                df_normalized[self.feature_cols] = self.scaler.transform(df[self.feature_cols])
+                # Get the columns that the scaler expects
+                if self.scaler_features:
+                    # Ensure we have all required columns
+                    for col in self.scaler_features:
+                        if col not in df.columns:
+                            # Add missing columns with default values
+                            if col == "QoE":
+                                df[col] = 0.0
+                            elif col == "timestamp":
+                                df[col] = trace.get("timestamp", 0)
+                            else:
+                                # For any other missing columns, add as 0
+                                df[col] = 0.0
+                    
+                    # Reorder columns to match scaler's expected order
+                    df = df[self.scaler_features]
                 
-                # Reshape for model input: (1, 1, num_features)
-                # Since each trace already represents a sequence, we treat it as a single sequence
-                sequence = df_normalized[self.feature_cols].values.reshape(1, 1, len(self.feature_cols))
+                # Normalize all features using the scaler
+                df_normalized = self.scaler.transform(df)
+                df_normalized = pd.DataFrame(df_normalized, columns=df.columns)
                 
-                # However, the model expects (batch_size, seq_length, features)
-                # We need to reshape properly based on the model's expected input
-                # The trace already contains 5 timestamps worth of data flattened
-                # We need to unflatten it back to (1, 5, 5) for 5 timestamps and 5 features each
-                num_features_per_timestamp = 5
-                sequence = df_normalized[self.feature_cols].values.reshape(1, self.seq_length, num_features_per_timestamp)
+                # For this model, we need ALL features (not just the base features) at each timestep
+                # The model expects (batch_size, seq_length, 45) where 45 = all features except QoE
+                
+                # Get all feature columns except QoE
+                all_feature_cols = [col for col in df_normalized.columns if col != 'QoE']
+                
+                # Extract all features for the model
+                model_features = df_normalized[all_feature_cols].values
+                
+                # The model expects the same features repeated for each timestep in the sequence
+                # Since we only have one sample, we'll repeat it for each timestep
+                sequence = np.tile(model_features, (1, self.seq_length, 1))
                 
                 # Make prediction
                 predicted_qoe_scaled = self.model.predict(sequence, verbose=0)
                 
                 # Inverse transform to get the actual QoE value
                 # Create a dummy array with the same shape as what the scaler expects
-                dummy_array = np.zeros((1, len(self.feature_cols) + 1))  # +1 for QoE column
-                dummy_array[0, -1] = predicted_qoe_scaled[0, 0]  # Put prediction in QoE column
+                dummy_array = np.zeros((1, len(df.columns)))
+                
+                # Find the index of QoE column
+                qoe_index = list(df.columns).index("QoE")
+                dummy_array[0, qoe_index] = predicted_qoe_scaled[0, 0]
                 
                 # Inverse transform
                 inverted = self.scaler.inverse_transform(dummy_array)
-                predicted_qoe = inverted[0, -1]
+                predicted_qoe = inverted[0, qoe_index]
                 
                 predictions.append(float(predicted_qoe))
                 
+                print(f"Trace {i}: Predicted QoE = {predicted_qoe:.4f}")
+                
             except Exception as e:
                 print(f"Error processing trace {i}: {e}")
+                import traceback
+                traceback.print_exc()
                 predictions.append(-1)  # Return -1 for errors as in the original
         
         # Return single value if only one trace, otherwise return list
