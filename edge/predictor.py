@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 
 # Import the custom attention layer from the training script
-'''
+ 
 class SelfAttention(tf.keras.layers.Layer):
     """
     Custom Self-Attention Layer
@@ -73,7 +73,7 @@ class SelfAttention(tf.keras.layers.Layer):
         })
         return config
 
-'''
+
 class Predictor:
     def __init__(self, model_path="model_gru_with_attention.h5", scaler_path="scaler.save", seq_length=5):
         """
