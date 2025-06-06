@@ -99,6 +99,7 @@ class PCAPHandler(FileSystemEventHandler):
             trace_data = measurements.get_measurements()
             measurement["qoe"]=0
             if trace_data:
+                print(trace_data)
                 result = qoe_predictor.infer(trace_data)
                 measurement["qoe"]= result
             print(measurement)

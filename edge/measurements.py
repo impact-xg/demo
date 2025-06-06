@@ -2,7 +2,8 @@ from collections import deque
 
 class Measurements:
     def __init__(self):
-        self.records = deque(maxlen=25)
+        #self.records = deque(maxlen=25)
+        self.records = deque(maxlen=5)
         
     def add_measurement(self, timestamp, data):
         self.records.append({timestamp: data})
@@ -14,7 +15,8 @@ class Measurements:
         trace_data = []
         records_list = list(self.records)
 
-        for i in range(0, 25, 5):
+        #for i in range(0, 25, 5):
+        for i in range(0, 5, 5):
             group = records_list[i:i+5]
             group_dict = {}
             group_dict["timestamp"] = list(group[4].keys())[0]
