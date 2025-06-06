@@ -87,14 +87,14 @@ class PCAPHandler(FileSystemEventHandler):
             loss = float(filtered_arr[11].strip("()%"))
             mean = float(filtered_arr[16])
             formatted_mean = "{:.3f}".format(mean)
-            speed = 20 #get_speed()
+            speed = "20" #get_speed()
             measurement = {}
             measurement["throughput"] = round(bytes/interval, 1)
             measurement["packets_lost"] = float(plost)
             measurement["packet_loss_rate"] = loss
             measurement["jitter"] = float(formatted_mean)
             measurement["speed"] = speed
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            timestamp = int(datetime.now().strftime("%Y%m%d%H%M%S"))
             measurements.add_measurement(timestamp, measurement)
             trace_data = measurements.get_measurements()
             if trace_data:
