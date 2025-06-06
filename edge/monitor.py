@@ -19,8 +19,8 @@ connected_clients = set()
 measurements = Measurements()
 
 qoe_predictor = Predictor(
-    model_path= PATH_TO_GRU,  # Path to the model
-    scaler_path=PATH_TO_SCALER,  # Path to the scaler
+    model_path= "gru_basic.h5",  # Path to the model
+    scaler_path="scaler.save",  # Path to the scaler
     seq_length=5,                # Sequence length (should match training), 5 is the default
     use_stats=True              # Set this based on how you trained the model
 )
