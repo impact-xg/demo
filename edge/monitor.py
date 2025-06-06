@@ -101,7 +101,7 @@ class PCAPHandler(FileSystemEventHandler):
             print(measurement)
             asyncio.run(self.broadcast(json.dumps(measurement)))
         except Exception as e:
-            return
+            print(e)
 
 if __name__ == "__main__":
     event_handler = PCAPHandler()
