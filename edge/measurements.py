@@ -10,14 +10,14 @@ class Measurements:
         self.records.append({timestamp: data})
 
     def get_measurements(self):
-        if len(self.records) < self.maxlen=5:
+        if len(self.records) < self.maxlen:
             return None
 
         trace_data = []
         records_list = list(self.records)
 
         #for i in range(0, 25, 5):
-        for i in range(0, self.maxlen=5, 5):
+        for i in range(0, self.maxlen, 5):
             group = records_list[i:i+5]
             group_dict = {}
             group_dict["timestamp"] = list(group[4].keys())[0]
