@@ -7,7 +7,6 @@ import os
 from datetime import datetime
 
 # Import the custom attention layer from the training script
- 
 class SelfAttention(tf.keras.layers.Layer):
     """
     Custom Self-Attention Layer
