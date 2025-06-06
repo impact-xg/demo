@@ -6,9 +6,24 @@ import os
 import websockets
 import asyncio
 import json
+from datetime import datetime
+from measurements import Measurements
+from predictor import Predictor
 
 WATCH_FOLDER = "./output"
+LOCAL_IP = "192.168.154.10"
+PATH_TO_GRU = "/home/ubuntu/demo/edge/qoe_prediction_model/models/gru_basic.h5"
+PATH_TO_SCALER = "/home/ubuntu/demo/edge/qoe_prediction_model/models/scaler.save"
+
 connected_clients = set()
+measurements = Measurements()
+
+qoe_predictor = Predictor(
+    model_path= PATH_TO_GRU,  # Path to the model
+    scaler_path=PATH_TO_SCALER,  # Path to the scaler
+    seq_length=5                # Sequence length (should match training), 5 is the default
+)
+
 
 async def ws_handler(websocket):
     connected_clients.add(websocket)
@@ -20,7 +35,7 @@ async def ws_handler(websocket):
         print(f"❌ Client disconnected: {websocket.remote_address}")
 
 async def start_ws_server():
-    server = await websockets.serve(ws_handler, "192.168.154.10", 8765)
+    server = await websockets.serve(ws_handler,LOCAL_IP, 8765)
     print("🌐 WebSocket server running at ws://192.168.154.10:8765")
     return server
 
@@ -78,6 +93,12 @@ class PCAPHandler(FileSystemEventHandler):
             measurement["packet_loss_rate"] = loss
             measurement["jitter"] = float(formatted_mean)
             measurement["speed"] = speed
+            trace_data = measurements.get_measurements()
+            measurement["qoe"]=0
+            if trace_data:
+                result = qoe_predictor.infer(trace_data)
+                measurement["qoe"]= result
+            print(measurement)
             asyncio.run(self.broadcast(json.dumps(measurement)))
         except Exception as e:
             return

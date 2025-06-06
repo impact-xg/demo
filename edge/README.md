@@ -4,6 +4,7 @@
 ```
 python3 -m pip install -U watchdog --break-system-packages
 python3 -m pip install -U websockets --break-system-packages
+python3 -m pip install -r requirements.txt --break-system-packages
 ```
 
 ## Execution
