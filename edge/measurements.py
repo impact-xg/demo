@@ -4,19 +4,20 @@ class Measurements:
     def __init__(self):
         #self.records = deque(maxlen=25)
         self.records = deque(maxlen=5)
+        self.maxlen=5
         
     def add_measurement(self, timestamp, data):
         self.records.append({timestamp: data})
 
     def get_measurements(self):
-        if len(self.records) < 25:
+        if len(self.records) < self.maxlen=5:
             return None
 
         trace_data = []
         records_list = list(self.records)
 
         #for i in range(0, 25, 5):
-        for i in range(0, 5, 5):
+        for i in range(0, self.maxlen=5, 5):
             group = records_list[i:i+5]
             group_dict = {}
             group_dict["timestamp"] = list(group[4].keys())[0]
