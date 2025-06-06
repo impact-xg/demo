@@ -20,7 +20,7 @@ class Measurements:
         for i in range(0, self.maxlen, 5):
             group = records_list[i:i+5]
             group_dict = {}
-            group_dict["timestamp"] = list(group[4].keys())[0]
+            group_dict["timestamp"] = int(list(group[4].keys())[0])
             for record in group:
                 group_dict.update(record)
 
