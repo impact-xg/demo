@@ -97,11 +97,10 @@ class PCAPHandler(FileSystemEventHandler):
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             measurements.add_measurement(timestamp, measurement)
             trace_data = measurements.get_measurements()
-            measurement["qoe"]=0
             if trace_data:
                 print(trace_data)
                 result = qoe_predictor.infer(trace_data)
-                measurement["qoe"]= result
+                print ("***********QoE:", result) 
             print(measurement)
             asyncio.run(self.broadcast(json.dumps(measurement)))
         except Exception as e:
