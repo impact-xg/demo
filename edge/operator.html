@@ -3,58 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <title>Monitor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    html, body {
+      height: 100%;
+    }
     body {
-      font-family: sans-serif;
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
       background: #f9f9f9;
     }
-    #log {
-      white-space: pre-wrap;
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 500px;
-      overflow-y: auto;
+    main {
+      flex: 1 0 auto;
     }
-    video {
-      width: 720px;
-      height: 405px;
-      background: black;
+    canvas {
+      display: block;
+      margin-top: 5px;
+      width: 200px !important;
+      height: 80px !important;
+    }
+    footer {
+      flex-shrink: 0;
+      padding: 10px;
+      background-color: #f1f1f1;
+      text-align: center;
+    }
+    .metric-label {
+      font-weight: bold;
+      margin-right: 10px;
     }
   </style>
 </head>
 <body>
 
-<h2>📡 Tshark Output Stream</h2>
-<div id="log">Waiting for messages...</div>
- <h2>📡 Live WebRTC Stream from MediaMTX</h2>
-<iframe
-  src="http://192.168.154.10:8889/camera"
-  width="720"
-  height="405"
-  frameborder="0"
-  allow="autoplay"
-></iframe>
+<header class="bg-dark text-white p-3">
+  <div class="container">
+    <h1 class="h4">📡 Monitoring Dashboard</h1>
+    <div id="log" class="small">Connecting to WebSocket...</div>
+  </div>
+</header>
+
+<main class="container my-4">
+  <div class="row">
+    <!-- Video column -->
+    <div class="col-md-6 mb-4">
+      <h5>📡 Live WebRTC Stream from MediaMTX</h5>
+      <iframe
+        src="http://192.168.154.10:8889/camera"
+        width="100%"
+        height="405"
+        frameborder="0"
+        allow="autoplay"
+      ></iframe>
+    </div>
+
+    <!-- Stats column -->
+    <div class="col-md-6">
+      <h5>📊 Metrics</h5>
+      <div id="stats" class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <span class="metric-label">Throughput:</span><span id="throughput"></span>
+            <canvas id="chart-throughput"></canvas>
+          </div>
+          <div class="mb-3">
+            <span class="metric-label">Packet Loss Rate:</span><span id="packet_loss_rate"></span>
+            <canvas id="chart-packet_loss_rate"></canvas>
+          </div>
+          <div class="mb-3">
+            <span class="metric-label">Speed:</span><span id="speed"></span>
+            <canvas id="chart-speed"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <span class="metric-label">Packets Lost:</span><span id="packets_lost"></span>
+            <canvas id="chart-packets_lost"></canvas>
+          </div>
+          <div class="mb-3">
+            <span class="metric-label">Jitter:</span><span id="jitter"></span>
+            <canvas id="chart-jitter"></canvas>
+          </div>
+          <div class="mb-3">
+            <span class="metric-label">QoE:</span><span id="qoe"></span>
+            <canvas id="chart-qoe"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    &copy; 2025 All rights reserved.
+  </div>
+</footer>
 
 <script>
   const logDiv = document.getElementById("log");
   const ws = new WebSocket("ws://192.168.154.10:8765");
 
+  const fields = ["throughput", "packets_lost", "packet_loss_rate", "jitter", "speed", "qoe"];
+  const charts = {};
+  const chartDataLength = 20;
+
+  fields.forEach(field => {
+    const ctx = document.getElementById(`chart-${field}`).getContext('2d');
+    charts[field] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array(chartDataLength).fill(''),
+        datasets: [{
+          label: field,
+          data: [],
+          fill: false,
+          borderColor: 'blue',
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: false,
+        animation: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  });
+
   ws.onopen = () => {
-    logDiv.textContent = "✅ Connected to WebSocket server.\n";
+    logDiv.textContent = "✅ Connected to WebSocket server.";
   };
 
   ws.onmessage = (event) => {
-    logDiv.textContent =  event.data;
+    try {
+      const data = JSON.parse(event.data);
+      fields.forEach(field => {
+        const valueLabel = document.getElementById(field);
+        if (valueLabel && field in data) {
+          valueLabel.textContent = data[field];
+          const chart = charts[field];
+          chart.data.datasets[0].data.push(data[field]);
+          if (chart.data.datasets[0].data.length > chartDataLength) {
+            chart.data.datasets[0].data.shift();
+          }
+          chart.update();
+        }
+      });
+    } catch (err) {
+      console.error("Invalid JSON received:", event.data);
+    }
   };
 
   ws.onerror = (err) => {
-    logDiv.textContent += "\n❌ WebSocket error: " + err.message;
+    logDiv.textContent += `\n❌ WebSocket error: ${err.message}`;
   };
 
   ws.onclose = () => {
-    logDiv.textContent += "\n🔌 Disconnected from WebSocket server.";
+    logDiv.textContent += `\n🔌 Disconnected from WebSocket server.`;
   };
 </script>
 
