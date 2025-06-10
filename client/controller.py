@@ -11,7 +11,8 @@ ffmpeg_process_low = None
 ffmpeg_process_high = None
 current_quality = "high"
 pipe_path = "input.pipe"
-ffmpeg_path = os.path.expanduser("~/bin/ffmpeg")
+#ffmpeg_path = os.path.expanduser("~/bin/ffmpeg")
+ffmpeg_path = "ffmpeg"
 
 # Video sources
 HIGH_QUALITY_FILE = "./input/webcam-20kmh-long-1.mp4"

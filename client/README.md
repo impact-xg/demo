@@ -1,5 +1,9 @@
 # Preparation
 mkfifo input.pipe
+python3 -m pip install flask
+
+# Execution
+First run `stream.sh` then run `python3 controller.py`
 
 # Network errors
 sudo tc qdisc add dev enp0s3 root netem loss 1%
