@@ -100,6 +100,7 @@ class PCAPHandler(FileSystemEventHandler):
             if trace_data:
                 print(trace_data)
                 result = qoe_predictor.infer(trace_data)
+                measurement["qoe"] = result
                 print ("***********QoE:", result) 
             print(measurement)
             asyncio.run(self.broadcast(json.dumps(measurement)))
