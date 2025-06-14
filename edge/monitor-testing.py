@@ -7,8 +7,7 @@ import websockets
 import asyncio
 import json
 from datetime import datetime
-from measurements import Measurements
-from predictor import Predictor
+
 
 WATCH_FOLDER = "./output"
 LOCAL_IP = "192.168.1.18"
@@ -18,12 +17,7 @@ PATH_TO_SCALER = "/home/ubuntu/demo/edge/qoe_prediction_model/models/scaler.save
 connected_clients = set()
 measurements = Measurements()
 
-qoe_predictor = Predictor(
-    model_path= "gru_basic.h5",  # Path to the model
-    scaler_path="scaler.save",  # Path to the scaler
-    seq_length=5,                # Sequence length (should match training), 5 is the default
-    use_stats=True              # Set this based on how you trained the model
-)
+
 
 
 async def ws_handler(websocket):
@@ -96,12 +90,6 @@ class PCAPHandler(FileSystemEventHandler):
             measurement["speed"] = speed
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             measurements.add_measurement(timestamp, measurement)
-            trace_data = measurements.get_measurements()
-            if trace_data:
-                print(trace_data)
-                result = qoe_predictor.infer(trace_data)
-                measurement["qoe"] = result
-                print ("***********QoE:", result) 
             print(measurement)
             asyncio.run(self.broadcast(json.dumps(measurement)))
         except Exception as e:
