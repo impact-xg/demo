@@ -33,13 +33,27 @@
       font-weight: bold;
       margin-right: 10px;
     }
+    .qoe-status {
+      margin-left: 10px;
+    }
+    header {
+      background-color: #ffffff;
+      border-bottom: 1px solid #ccc;
+    }
+    .header-logo {
+      height: 40px;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
 
-<header class="bg-dark text-white p-3">
-  <div class="container">
-    <h1 class="h4">📡 Monitoring Dashboard</h1>
+<header class="p-3">
+  <div class="container d-flex align-items-center">
+    <img src="https://streamowl.com/wp-content/uploads/2020/12/logo_base_S-e1607356796751.png" alt="Logo" class="header-logo">
+    <h1 class="h4 mb-0">📡 Monitoring Dashboard</h1>
+  </div>
+  <div class="container mt-2">
     <div id="log" class="small">Connecting to WebSocket...</div>
   </div>
 </header>
@@ -86,7 +100,7 @@
             <canvas id="chart-jitter"></canvas>
           </div>
           <div class="mb-3">
-            <span class="metric-label">QoE:</span><span id="qoe"></span>
+            <span class="metric-label">QoE:</span><span id="qoe"></span><span id="qoe-status" class="qoe-status"></span>
             <canvas id="chart-qoe"></canvas>
           </div>
         </div>
@@ -97,13 +111,13 @@
 
 <footer>
   <div class="container">
-    &copy; 2025 All rights reserved.
+    &copy; 2025
   </div>
 </footer>
 
 <script>
   const logDiv = document.getElementById("log");
-  const ws = new WebSocket("ws://192.168.154.10:8765");
+  const ws = new WebSocket("ws://192.168.1.16:8765");
 
   const fields = ["throughput", "packets_lost", "packet_loss_rate", "jitter", "speed", "qoe"];
   const charts = {};
@@ -158,6 +172,14 @@
           chart.update();
         }
       });
+
+      // Handle QoE status icon
+      const qoeStatus = document.getElementById("qoe-status");
+      if ("qoe" in data && qoeStatus) {
+        const qoeVal = parseFloat(data.qoe);
+        qoeStatus.textContent = qoeVal < 70 ? "⚠️" : "✅";
+      }
+
     } catch (err) {
       console.error("Invalid JSON received:", event.data);
     }
