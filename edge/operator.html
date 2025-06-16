@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Monitor</title>
+  <title>Operator dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -51,7 +51,7 @@
 <header class="p-3">
   <div class="container d-flex align-items-center">
     <img src="https://streamowl.com/wp-content/uploads/2020/12/logo_base_S-e1607356796751.png" alt="Logo" class="header-logo">
-    <h1 class="h4 mb-0">📡 Monitoring Dashboard</h1>
+    <h1 class="h4 mb-0">Operator Dashboard</h1>
   </div>
   <div class="container mt-2">
     <div id="log" class="small">Connecting to WebSocket...</div>
@@ -62,7 +62,7 @@
   <div class="row">
     <!-- Video column -->
     <div class="col-md-6 mb-4">
-      <h5>📡 Live WebRTC Stream from MediaMTX</h5>
+      <h5>📡 Live stream</h5>
       <iframe
         src="http://192.168.154.10:8889/camera"
         width="100%"
@@ -117,7 +117,7 @@
 
 <script>
   const logDiv = document.getElementById("log");
-  const ws = new WebSocket("ws://192.168.1.16:8765");
+  const ws = new WebSocket("ws://192.168.154.10:8765");
 
   const fields = ["throughput", "packets_lost", "packet_loss_rate", "jitter", "speed", "qoe"];
   const charts = {};

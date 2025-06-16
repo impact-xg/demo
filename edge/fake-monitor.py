@@ -10,7 +10,7 @@ from measurements import Measurements
 
 connected_clients = set()
 measurements = Measurements()
-LOCAL_IP = "192.168.1.16"  # Define the IP used by the WebSocket server
+LOCAL_IP = "localhost"  # Define the IP used by the WebSocket server
 
 async def ws_handler(websocket):
     connected_clients.add(websocket)
